@@ -7,16 +7,16 @@ import math
 import config
 import socket
 import SocketServer
-import pickle
 import threading
 import multiprocessing
 from BBstepper import Stepper
 from Battery import Life
 from BBBgps import RoboGPS
+import select
 
 OCUdata = { } 
-SUBdata = { } 
-FLOATdata= { }
+subDATA = {"hello Josef Biberstein...I am watching you" } 
+floatDATA= { }
 run = 1
 
 def Processes(value):
@@ -39,40 +39,94 @@ def spooler_init():
 	spooler.init_pins(config.stepper2)
 	print "Spooler Initialized"
 
-def subserver(value, first):
-	print "OCUServer Started"
-	if (first  == 1):
-		subServer = SocketServer.TCPServer((config.HOST, config.SUBPort), SUB_Server)
-		first = 0	
-	while value:
-		subServer.handle_request()
+def ocu_send_message(sock, message):
+	for socket in CONNECTION_LIST1:
+		if socket != server and socket == sock:
+			try:
+		 	    message = message.encode(encoding='UTF-8')
+			    socket.sendall(message)
+			except:
+			    socket.close()
+			    CONNECTION_LIST1.remove(socket)
 
-def ocuserver(value, first):
-	print "SUBServer Started"
-	if (first ==1):
-		ocuServer = SocketServer.TCPServer((config.HOST,config.OCUPort), OCU_Server)
-		first = 0
-	while value:
-		ocuServer.handle_request()
+def sub_send_data(sock, message):
+	for socket in CONNECTION_LIST2:
+		if socket != server and socket == sock:
+			try:
+			    message = message.encode(encoding='UTF-8')
+			    socket.sendall(message)
+			except:
+			    socket.close()
+			    CONNECTION_LIST2.remove(socket)
+
+def ocuserver():
+	CONNECTION_LIST1 = []
+	OCUserver = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+	OCUserver.bind((config.HOST, config.OCUPort))
+	Print "Starting OCUServer..."
+	server.listen(10)
+	
+	CONNECTION_LIST1.append(server)
+
+	while 1:
+		read_sockets,write_sockets,error_sockets = select.select(CONNECTION_LIST1, [], [])
+		
+		for sock in read_sockets:
+			if sock == OCUserver:
+				sock, addr = OCUserver.accept()
+				CONNECTION_LIST1.append(sock)
+				send_data(sock, "Welcome to RoboGoby's OCU Server")
+			else:
+				try:
+					data = sock.recv(config.RECV_BUFFER)
+					if data:
+						data = data.decode(encoding='UTF-8')
+						floatDATA += data
+						ocu_send_data(sock, floatDATA)
+					else:
+						ocu_send_data(sock, floatDATA)
+				except:
+					sock.close()
+					CONNECTION_LIST1.remove(sock)
+					continue
+
+def subserver():
+    	CONNECTION_LIST2 = []
+        SUBserver = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        SUBserver.bind((config.HOST, config.SUBPort))
+        Print "Starting SUBServer..."
+        server.listen(10)
+
+        CONNECTION_LIST2.append(server)
+
+        while 1:
+                read_sockets,write_sockets,error_sockets = select.select(CONNECTION_LIST2, [], [])
+
+                for sock in read_sockets:
+                        if sock == SUBserver:
+                                sock, addr = OCUserver.accept()
+                                CONNECTION_LIST2.append(sock)
+                                send_data(sock, "Welcome to RoboGoby's SUB Server")
+                        else:
+                                try:
+                                        data2 = sock.recv(config.RECV_BUFFER)
+                                        if data2:
+                                                data2 = data2.decode(encoding='UTF-8')
+                                                subDATA += data2
+                                                sub_send_data(sock, subDATA)
+                                        else:
+                                                sub_send_data(sock, subDATA)
+                                except:
+                                        sock.close()
+                                        CONNECTION_LIST2.remove(sock)
+                                        continue
 
 def sensors_init():
 	battery = Life()
-	battery.init()	
 	gps = RoboGPS()
-
-class SUB_Server(SocketServer.BaseRequestHandler):
-	def handle(self):
-		SUBdata = self.request.recv(1024)
-		SUBdata = pickle.loads(SUBdata)
-		print "Sub_Server"
+	battery.init()
+	gps.init()
 	
-class OCU_Server(SocketServer.BaseRequestHandler):
-	def handle(self):
-		OCUdata = self.request.recv(1024)
-		OCUdata = pickle.loads(OCUdata)
-		self.request.sendall(pickle.dumps(SUBdata))
-		self.request.sendall(pcikle.dumps(FLOATdata))
-
 class RoboGoby(object):
 	def init(self):
 		Processes(1)
@@ -81,6 +135,4 @@ class RoboGoby(object):
 	def cleanup(self):
 		print "Starting Cleanup"
 		Processes(0)
-		subserver(0,0)
-		ocuserver(0,0)
 		print "Cleanup Finished"

@@ -12,21 +12,21 @@ maxRatio = 1.00
 minRatio = .78
 
 shutdown = 1
+ratioConstant = maxRatio - minRatio
 
 class Life(object):
   
   def init(self):
     ADC.setup()
-    ratioConstant = maxRatio - minRatio
     
-  def read_voltage(self, run):
-    while run:
-       value = ADC.read_raw(config.battery_pin)
+  def read_voltage(self):
+       value = ADC.read_raw("P9_40")
+       print value
        ratio = value/maxValue
        difference = maxRatio - ratio
        percentage = difference/ratioConstant
+       print percentage
        if (ratio < .8):
             return shutdown
        else:
             return percentage
-       time.sleep(5)

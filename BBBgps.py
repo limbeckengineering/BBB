@@ -3,11 +3,19 @@
 import gps
 import time
 import config
+import sys
+import os
 
 session = gps.gps("localhost", "2947")
 session.stream(gps.WATCH_ENABLE | gps.WATCH_NEWSTYLE)
 
 class RoboGPS(object):
+	def init():
+		os.system("echo BB-UART4 > /sys/devices/bone_capemgr.9/slots")
+		os.system("gpsd/dev/ttyO4 -F /var/run/gpsd.sock")
+
+
+
 	def read():
 		while True:
 			try:
