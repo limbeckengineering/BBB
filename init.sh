@@ -15,6 +15,8 @@ ntpdate pool.ntp.org
 
 apt-get update && apt-get upgrade -y
 
+apt-get install pyserial -y
+
 apt-get install openjdk-7-jre -y
 
 apt-get install build-essential python-dev python-smbus -y
