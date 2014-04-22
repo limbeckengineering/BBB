@@ -2,7 +2,6 @@
 #1.8 per step
 
 import Adafruit_BBIO.GPIO as GPIO
-import Adafruit_BBIO.PWM as PWM
 import time
 import math
 import config
@@ -16,10 +15,8 @@ def step_backward(pins, pin_index):
 class Stepper(object):
 
 	def init_pins(self, pins):
-		GPIO.setup(config.pins["en"], GPIO.OUT)
 		GPIO.setup(config.pins["clk"], GPIO.OUT)
 		GPIO.setup(config.pins["dir"], GPIO.OUT)
-		GPIO.output(config.pins["en"], GPIO.LOW)
 		GPIO.output(config.pins["clk"], GPIO.HIGH)
 		
 	def spin_clockwise(self, pins, rotations, rpm):
