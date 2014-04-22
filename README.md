@@ -15,7 +15,7 @@ The _init.sh_ file will install the following:
 	
 		•Python and Python GPIO dependencies
 		•Adafruit_BBIO library files
-		•Java 7 Runtime Environt
+		•Java 7 Runtime Environment
 		•GPSd, GPSd-clients, and Python-GPS
 		•Update and Upgrade of the operating system
 
@@ -32,4 +32,18 @@ Run this command to initate the stepper library:
 
 _sudo python setup.py install_
 
-The commands are as follows:
+This is a library made especally for the BeagleBone. It used the Adafruit_BBIO library to run a stepper motor using the TB6600 stepper motor driver. The BeagleBone Black pins 15 and 17 on header 8. 
+
+	•Pin 17 is the "Clk" signal
+	•Pin 15 is the "Dir" signal
+	
+Below is an example of how to use the stepper library (variables = rotations, rpm):
+
+*
+stepper.init_pins(config.pins)
+stepper.spin_clockwise(config.pins, rotations, rpm)
+stepper.spin_counterclockwise(config.pins, rotations, rpm)
+stepper.cleanup(config.pins)
+*
+
+For more information open the stepper.py file. The pins used can be changed by accessing config.py. 
