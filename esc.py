@@ -2,16 +2,19 @@
 
 import Adafruit_BBIO.PWM as PWM
 import time 
-import config
+#import config
 
-PWM.start("P8_19", 10)
-PWM.set_duty_cycle("P8_19", 6.5)
-PWM.set_frequency("P8_19", 50)
+f = open('speed.txt', 'r')
+pwm = f.readline(3)
+print pwm
+ 
+PWM.start("P8_19", 6.5, 60)
 
 while (pwm != 100):
-	pwm = f.read()
-	PWM.set_duty_cycle("P8_19",6.5)
-	pwm = f.read()
+	var = raw_input("Enter PWM%: ")
+	float(var)	
+	PWM.set_duty_cycle("P8_19", float(var))
+	pwm = f.readline(3)
 
 time.sleep(2)
 
