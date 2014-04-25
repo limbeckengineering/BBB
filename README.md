@@ -59,7 +59,16 @@ GPSd through UART
 
 The GPSd instillation will have been completed after the init.sh file was run.
 
-the BBBgps.py file will read GPS data coming from UART4 on the BeagleBone, parse the data, and then send it in DD/MM/SS.SS format. 
 
+the BBBgps.py file will read GPS data coming from UART4 on the BeagleBone, parse the data, and then send it in DD/MM/SS.SSL format back to the user. Enabling UART on the BeagleBone uses device tree overlays. If you already have the correct files in /lib/firmware then enabling UART is easy (bone_capemgr.# depends on the Bone kernel you have installed):
+ 
+           sudo su
+           echo BB-UART4 > /sys/devices/bone_capemgr.9/slots
 
+And then lock the UART port with gpsd-clients (which was installed in during _init.sh_)
 
+           gpsd /dev/ttyO4 -F /var/run/gpsd.sock
+
+Now the BBBgps.py file can be run using Python:
+
+          sudo python BBBgps.py
