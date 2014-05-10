@@ -6,36 +6,34 @@ import math
 import config
 import socket
 import thread
+import SocketServer
 
 
 
 def i2c_bus():
   bus = smbus.SMBus(2)
   address1 = 0x2a
-  address2 = 0x4b
-  return address1, address2
+  return address
   
-class Server()
+class Server(SocketServer.BaseRequestHandler):
   
-  def init(self, config.OCU):         ##OCU = (ip, port)
-    self.s = socket.socket()
-    self.s = bind(OCU)
-    self.s.listen(1)
-    conformation = "1"
+  def handle(self):
+  	self.data = self.request.recv(1024)
+  	config.data += self.data
+  	
+  	self.request.sendall("data recieved")
     
-  def send(self, data):
-    self.s.send(data)
-    self.s.send(conformation)
-    receive = self.conn.recv(1024)
-    if (
+  def start(self)
+  	HOST, PORT = "10.0.1.202", 1234
+  	server = SocketServer.TCPServer((HOST, PORT), Server)
+  	server.serve_forever()
   
-  
+ 
 
 class RoboGoby(object):
 
   def dataInit(self, address1, address2):
     config.arduino1 = address1
-    config.arduino2 = address2
     i2c_bus(self)
     
   
