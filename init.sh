@@ -27,3 +27,4 @@ cd ..
 rm -rf adafruit-beaglebone-io-python
 
 apt-get install gpsd gpsd-clients python-gps
+apt-get install python-smbus
