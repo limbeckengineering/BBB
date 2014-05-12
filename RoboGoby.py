@@ -57,6 +57,11 @@ class RoboGoby(object):
   
 	def readSensorData(self):
 		print "hello"
+		
+	def start_server(self):
+		HOST, IP = "10.0.1.119", 3456
+		server = SocketServer((HOST,IP), Server)
+		server.server_forever()
 	
 	def send(self, data):
 		HOST, PORT = config.host, config.port
