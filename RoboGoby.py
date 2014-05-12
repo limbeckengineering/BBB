@@ -7,8 +7,10 @@ import math
 import config
 import socket
 import SocketServer
-import data
 import pickle
+import threading
+from threading import Thread
+#from multiprocessing import Process
 from BBStepper import Stepper
 
 
@@ -19,7 +21,7 @@ def i2c_bus():
 
 
 def spool(depth):
-	
+	time.sleep(depth)
 
   
 class Server(SocketServer.BaseRequestHandler):
@@ -32,9 +34,21 @@ class Server(SocketServer.BaseRequestHandler):
 
 class RoboGoby(object):
 	def init(self):
-		spooler = Stepper()	
-  		spooler.init_pins(config.pins)
-
+		Thread(target = spool_init).start()
+		Thread(target = server_init).start()
+		#p1 = Process(target = spool_init)
+		#p1.start()
+		#p2 = Process(target = server_init)
+		#p2.start()
+		#p1.join()
+		#p2.join()
+		
+	def spool_init(self):
+		#spooler = Stepper()	
+  		#spooler.init_pins(config.pins)
+		time.sleep(50)
+	def server_init(self):
+		print "Server running using Threads"
 
 	def dataInit(self, address1, address2):
     		config.arduino1 = address1
@@ -68,4 +82,5 @@ class RoboGoby(object):
 	
 
 	def cleanup(self)
-		stepper.cleanup(config.pins)
+		stepper.cleanup(config.stepper1)
+		stepper.cleanup(config.stepper2)
