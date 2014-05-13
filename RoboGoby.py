@@ -9,7 +9,7 @@ import socket
 import SocketServer
 import pickle
 import threading
-from threading import Thread
+from threading
 from BBStepper import Stepper
 from Battery import Life
 
@@ -17,16 +17,16 @@ from Battery import Life
 OCUdata = { } 
 SUBdata = { } 
 
-def spool_init():
+def spooler_init():
 	spooler = Stepper()
 	spooler.init_pins(config.stepper1)
 	spooler.init_pins(config.stepper2)
 	
-def server_init():
+def servers_init():
 	
 	
 def sensors_init():
-
+	
 
 	
   
@@ -45,9 +45,12 @@ class OCU_Server(SocketServer.BaseRequestHandler):
 
 class RoboGoby(object):
 	def init(self):
-		Thread(target = spool_init).start()
-		Thread(target = server_init).start()
-		Thread(target = sensors_init).start()
+		spooler = threading.Thread(name='Spooler', target = spooler_init)
+		servers = threading.Thread(name='Servers', target = servers_init)
+		sensors = threading.Thread(name='Sensors', target = sensors_init)
+		spooler.start()
+		servers.start()
+		sensors.start()
 
 	def dataInit(self, address1, address2):
     		config.arduino1 = address1
