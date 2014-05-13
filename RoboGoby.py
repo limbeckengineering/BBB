@@ -23,12 +23,18 @@ def spooler_init():
 	spooler.init_pins(config.stepper2)
 	
 def servers_init():
-	server = SocketServer.TCPServer((HOST,PORT), Server)
-
-	server.serve_forever()
+	ocuServer = SocketServer.TCPServer((config.HOST,OCUPort), OCU_Server)
+	subServer = SocketServer.TCPServer((config.HOST, SUBPort), SUB_Server)
+	ocuServer.serve_forever()
+	subServer.serve_forever()
 
 
 def sensors_init():
+	
+	
+def servers_shutdown():
+	ocuServer.shutdown()
+	subServer.shutdown()
 	
 
 	
@@ -38,14 +44,13 @@ class SUB_Server(SocketServer.BaseRequestHandler):
 		SUBdata = self.request.recv(1024)
 		SUBdata = pickle.loads(SUBdata)
 		self.request.sendall("N/A")
-
+		print "Sub_Server"
+	
 class OCU_Server(SocketServer.BaseRequestHandler):
 	def handle(self):
-		
-		while running:
-			OCUdata = self.request.recv(1024)
-			OCUdata = pickle.loads(OCUdata)
-			self.request.sendall(SUBdata)
+		OCUdata = self.request.recv(1024)
+		OCUdata = pickle.loads(OCUdata)
+		self.request.sendall(SUBdata)
 			
 
 class RoboGoby(object):
