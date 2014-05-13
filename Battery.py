@@ -6,7 +6,7 @@ import Adafruit_BBIO.ADC as ADC
 
 
 
-class Battery_Life(object):
+class Life(object):
   
   def init():
     ADC.setup()
