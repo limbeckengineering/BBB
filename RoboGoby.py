@@ -10,45 +10,44 @@ import SocketServer
 import pickle
 import threading
 from threading import Thread
-#from multiprocessing import Process
 from BBStepper import Stepper
+from Battery import Life
 
 
-def i2c_bus():
-  bus = smbus.SMBus(2)
-  address1 = 0x2a
-  return address
+OCUdata = { } 
+SUBdata = { } 
+
+def spool_init():
+	spooler = Stepper()
+	spooler.init_pins(config.stepper1)
+	spooler.init_pins(config.stepper2)
+	
+def server_init():
+	
+	
+def sensors_init():
 
 
-def spool(depth):
-	time.sleep(depth)
-
+	
   
-class Server(SocketServer.BaseRequestHandler):
+class SUB_Server(SocketServer.BaseRequestHandler):
 	def handle(self):
-		self.data = self.request.recv(1024)
-		self.data = pickle.loads(self.data)
-		print "Server created"
-		goby = RoboGoby()
-		goby.send(self.data)
+		self.SUBdata = self.request.recv(1024)
+		self.SUBdata = pickle.loads(SUBself.data)
+		self.request.sendall("N/A")
+
+class OCU_Server(SocketServer.BaseRequestHandler):
+	def handle(self):
+		self.OCUdata = self.request.recv(1024)
+		self.OCUdata = pickle.loads(self.OCUdata)
+		self.request.sendall(SUBdata)
+			
 
 class RoboGoby(object):
 	def init(self):
 		Thread(target = spool_init).start()
 		Thread(target = server_init).start()
-		#p1 = Process(target = spool_init)
-		#p1.start()
-		#p2 = Process(target = server_init)
-		#p2.start()
-		#p1.join()
-		#p2.join()
-		
-	def spool_init(self):
-		#spooler = Stepper()	
-  		#spooler.init_pins(config.pins)
-		time.sleep(50)
-	def server_init(self):
-		print "Server running using Threads"
+		Thread(target = sensors_init).start()
 
 	def dataInit(self, address1, address2):
     		config.arduino1 = address1
