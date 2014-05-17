@@ -22,12 +22,13 @@ def spooler_init():
 	spooler.init_pins(config.stepper1)
 	spooler.init_pins(config.stepper2)
 	
-def servers_init():
-	ocuServer = SocketServer.TCPServer((config.HOST,OCUPort), OCU_Server)
+def ocuserver_init():
 	subServer = SocketServer.TCPServer((config.HOST, SUBPort), SUB_Server)
-	ocuServer.serve_forever()
 	subServer.serve_forever()
 
+def subserver_init():
+	ocuServer = SocketServer.TCPServer((config.HOST,OCUPort), OCU_Server)
+	ocuServer.serve_forever()
 
 def sensors_init():
 	
@@ -38,7 +39,6 @@ def servers_shutdown():
 	
 
 	
-  
 class SUB_Server(SocketServer.BaseRequestHandler):
 	def handle(self):
 		SUBdata = self.request.recv(1024)
@@ -56,10 +56,12 @@ class OCU_Server(SocketServer.BaseRequestHandler):
 class RoboGoby(object):
 	def init(self):
 		spooler = threading.Thread(name='Spooler', target = spooler_init)
-		servers = threading.Thread(name='Servers', target = servers_init)
+		OCUserver = threading.Thread(name='OCUServer', target = ocuserver_init)
+		SUBserver = threading.Thread(name='SUBServer', target = subserver_init)
 		sensors = threading.Thread(name='Sensors', target = sensors_init)
 		spooler.start()
-		servers.start()
+		OCUserver.start()
+		SUBserver.start()
 		sensors.start()
 
 	def dataInit(self, address1, address2):
