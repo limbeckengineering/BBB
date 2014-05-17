@@ -69,10 +69,10 @@ class SUB_Server(SocketServer.BaseRequestHandler):
 class OCU_Server(SocketServer.BaseRequestHandler):
 	def handle(self):
 		OCUdata = self.request.recv(1024)
-		OCUdata = pickle.loads(OCUdata)
-		self.request.sendall(pickle.dumps(SUBdata))
-		self.request.sendall(pcikle.dumps(FLOATdata))
-
+                OCUdata = OCUdata.decode(encoding='UTF-8')
+                SUBdata = SUBdata.encode(encoding='UTF-8')
+                self.request.sendall(SUBdata)
+                
 class RoboGoby(object):
 	def init(self):
 		Processes(1)
