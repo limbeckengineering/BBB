@@ -20,7 +20,10 @@ class Life(object):
     ADC.setup()
     
   def read_voltage(self):
-       value = ADC.read_raw("P9_40")
+       value = 0
+       for x in range (0, 20):
+		value += ADC.read_raw(config.battery_pin)
+       value = value/20
        print value
        ratio = value/maxValue
        difference = maxRatio - ratio
