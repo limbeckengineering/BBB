@@ -4,32 +4,25 @@ import time
 import config
 import Adafruit_BBIO.ADC as ADC
 
-maxValue = 1150
-minValue = 900
-#maxValue/maxValue
-maxRatio = 1.00
-#minValue/maxValue
-minRatio = .78
-
 shutdown = 1
-ratioConstant = maxRatio - minRatio
 
 class Life(object):
   
   def init(self):
     ADC.setup()
+    time.sleep(1)
     
   def read_voltage(self):
        value = 0
        for x in range (0, 20):
-		value += ADC.read_raw(config.battery_pin)
+		value += ADC.read(config.battery_pin)
        value = value/20
-       print value
-       ratio = value/maxValue
-       difference = maxRatio - ratio
-       percentage = difference/ratioConstant
-       print percentage
-       if (ratio < .8):
+       value = round(value, 4)
+       voltage = value * 1.8
+       voltage = voltage * (1047/47)
+       percentage = voltage/25.6 
+       percentage = round(percentage, 4)*100
+       if (percentage < .8):
             return shutdown
        else:
             return percentage
