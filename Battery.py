@@ -21,8 +21,11 @@ class Life(object):
        voltage = value * 1.8
        voltage = voltage * (1047/47)
        percentage = voltage/25.6 
-       percentage = round(percentage, 4)*100
+       percentage = .2 - (1-percentage)
+       percentage = .2/percentage      
        if (percentage < .8):
             return shutdown
        else:
             return percentage
+
+
