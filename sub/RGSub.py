@@ -12,7 +12,7 @@ import multiprocessing
 from BBstepper import Stepper
 from BBBgps import RoboGPS
 import select
-from Sensors import Temperature, Battery_Life, IMU
+from Sensors import Temperature, Battery_Life
 
 
 ocuDATA = { } 
@@ -24,13 +24,16 @@ def Processes(value):
  	       spooler = multiprocessing.Process(name='Spooler', target = spooler_init)
                OCUserver = multiprocessing.Process(name='OCUServer', target = ocuserver)
                SUBserver = multiprocessing.Process(name='SUBServer', target = subserver)
+               s = multiprocessing.Process(name='Sensors', target = sensors)
 	       spooler.start()
 	       OCUserver.start()
 	       SUBserver.start()
+	       s.start()
 	       if (value == 0):
 			spooler.terminate()
 			OCUserver.terminate()
 			SUBserver.terminate()
+			s.terminate()
 
 def spooler_init():
 	spooler = Stepper()
@@ -39,30 +42,25 @@ def spooler_init():
 	print "Spooler Initialized"
 
 
-def ocu_stream(sock, CONNECTION_LIST1, OCUserver):
+def ocu_stream(sock):
 	for socket in CONNECTION_LIST1:
-		if socket != OCUserver:
+		if socket != server:
 			while True:
 				try:
-				     print "ocu streaming"
-				     data = sensors() 
-				     #message1 = subDATA.encode(encoding='UTF-8')
-				     message2 = data.encode(encoding='UTF-8')
-				     #socket.send(message1)
+				     message1 = subDATA.encode(encoding='UTF-8')
+				     message2 = floatDATA.encode(encoding='UTF-8')
+				     socket.send(message1)
 				     socket.send(message2)
-				     time.sleep(1)
 				except:
 				     socket.close()
 				     CONNECTION_LIST1.remove(socket)
 				     sendTOocu.terminate()
-				     s.terminate()
-def ocu_send_data(CONNECTION_LIST1, OCUserver, sock, message):
+
+def ocu_send_data(sock, message):
 	for socket in CONNECTION_LIST1:
-		if socket != OCUserver:
+		if socket != server:
 			try:
-		 	    message = "hello"
-			    message = message.encode(encoding='UTF-8')
-			   
+		 	    message = subDATA.encode(encoding='UTF-8')
 			    socket.sendall(message)
 			except:
 			    socket.close()
@@ -70,7 +68,7 @@ def ocu_send_data(CONNECTION_LIST1, OCUserver, sock, message):
 
 def sub_send_data(sock, message):
 	for socket in CONNECTION_LIST2:
-		if socket != OCUserver:
+		if socket != server:
 			try:
 			    message = message.encode(encoding='UTF-8')
 			    socket.sendall(message)
@@ -95,21 +93,18 @@ def ocuserver():
 			if sock == OCUserver:
 				sock, addr = OCUserver.accept()
 				CONNECTION_LIST1.append(sock)
-				ocu_send_data(CONNECTION_LIST1, OCUserver, sock, "Welcome to RoboGoby's OCU Server")
-				print "sent client the hi message"
+				send_data(sock, "Welcome to RoboGoby's OCU Server")
 			else:
 				try:
-					print "created multithreaded process"
-					sendTOocu = multiprocessing.Process(name = "OCU Stream", target = ocu_stream, args = (sock, CONNECTION_LIST1, OCUserver,))
+					sendTOocu = multiprocessing.Process(name = 'OCU Stream', target = ocu_stream, args=(sock,))
 					data = sock.recv(config.RECV_BUFFER)
-					print data
-					#data = data.decode(encoding='UTF-8')
+					floatDATA += data
+					data = data.decode(encoding='UTF-8')
 					if (data == "1"):
 						sendTOocu.start()
-						print "data = 1"
 
 				except:
-					ocu_send_data(CONNECTION_LIST1, OCUserver, sock, "Kicking from OCUserver")
+					ocu_send_data(sock, "Kicking from OCUserver")
 					sock.close()
 					CONNECTION_LIST1.remove(sock)
 					continue
@@ -155,7 +150,6 @@ def sensors():
 	battery.init()
 	gps.init()
 	global floatDATA
-	floatDATA = ""
 	floatDATA += "temp: "
 	floatDATA += str(temp.read())
 	floatDATA +="; battery: "
@@ -163,8 +157,7 @@ def sensors():
 	floatDATA +="; IMU: "
 	floatDATA += str(imu.read())
 	floatDATA += ";"
-	return floatDATA
-	
+	print floatDATA
 
 class RoboGoby(object):
 	def init(self):
