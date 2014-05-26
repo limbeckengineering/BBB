@@ -32,17 +32,22 @@ def convert(pressure):
 	depth += str(meters)
 	return depth
 
-def start():
-	raw = 0
-	ADC.setup()
-	while True:
-		for x in range(0, 20):
-			raw+=ADC.read(config.depth_pin)
-		raw = raw/20
-		pressure = psi(raw)
-		print pressure
-		value = convert(pressure)
-		feet,meters = value.split(",")
-		print "Feet: " + feet
-		print "Meters: " + meters
-		time.sleep(1)			 
+
+
+
+class Depth:
+
+	def __init__(self):
+		raw = 0
+		ADC.setup()
+		while True:
+			for x in range(0, 20):
+				raw+=ADC.read(config.depth_pin)
+			raw = raw/20
+			pressure = psi(raw)
+			print pressure
+			value = convert(pressure)
+			feet,meters = value.split(",")
+			print "Feet: " + feet
+			print "Meters: " + meters
+			time.sleep(1)			 
