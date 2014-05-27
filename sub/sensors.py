@@ -22,50 +22,63 @@ def readTemp():
         temp += c
         return temp
 
-class Temperature(object):
-        def init(self):
-                os.system("echo BB-W1:00A0 > /sys/devices/bone_capemgr.9/slots")
+def psi(raw):
+	voltage = raw*1.8
+	voltage = voltage*(1470/470)
+	percent = 100.0*(voltage/5.15)
+	if (percent < 10):
+		return "voltage out of scope (too small)"
+	if (percent > 90):
+		return "voltage out of scope(too large)"
+	maxPressure = 150.0
+	minPressure = 0.0
+
+	pressure = ((percent-10)*(maxPressure-minPressure))/((90-10)+minPressure)
+	return pressure
+
+def convert(pressure):
+	depth = ""
+	feet = pressure/.435
+	feet = feet - 33.79
+	meters = feet*.3048
+	feet = round(feet,6)
+	meters = round(meters, 5)
+	depth += str(feet)
+	depth += ","
+	depth += str(meters)
+	return depth
+
+class Temp():
+        def __init__(self):
+                #os.system("echo BB-W1:00A0 > /sys/devices/bone_capemgr.9/slots")
 
         def read(self):
                    value = readTemp()
-                   fahrenheit,celcius = value.split(",")
-                   return fahrenheit +" " + celcius
+                   values  = value.split(",")
+                   temps = "f:" + values[0] + ";c:" + values[1]
+		   return temps
 
-
-class Battery_Life(object):
-
-  def init(self):
-    ADC.setup()
-    time.sleep(1)
-
-  def read_voltage(self):
-       value = 0
-       for x in range (0, 20):
-                value += ADC.read(config.battery_pin)
-       value = value/20
-       value = round(value, 4)
-       voltage = value * 1.8
-       voltage = voltage * (1047/47)
-       percentage = voltage/25.6
-       percentage = .2 - (1-percentage)
-       percentage = .2/percentage
-       if (percentage < .8):
-            return shutdown
-       else:
-            return percentage
-
-
-class IMU(object):
-	def init(self):
-		UART.setup("UART1")
-		os.system("sudo echo BB-UART1 > /sys/devices/bone_capemgr.9/slots")
+class IMU():
+	def __init__(self):
+		#os.system("sudo echo BB-UART1 > /sys/devices/bone_capemgr.9/slots")
 		ser = serial.Serial(port = "/dev/ttyO1", baudrate = 57600, timeout = .5)
-		ser.close()
-	
-	def read(self):
+		ser.close()	
 		ser.open()
 		YPR = ser.readline()
 		return YPR
 		ser.close()
 		
 
+class Depth():
+	def __init__(self):
+		raw = 0
+		ADC.setup()
+		while True:
+			for x in range(0, 20):
+				raw += ADC.read(configSub.depth_pin)
+			raw = raw/20
+			pressure = psi(raw)
+			value = convert(pressure)
+			depth = value.split(",")
+			depth = "f:" + depth[0] + ";m:"+ depth[1]
+			return depth

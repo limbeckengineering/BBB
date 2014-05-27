@@ -9,15 +9,8 @@ import os
 session = gps.gps("localhost", "2947")
 session.stream(gps.WATCH_ENABLE | gps.WATCH_NEWSTYLE)
 
-class RoboGPS(object):
-	def init(self):
-		os.system("echo BB-UART4 > /sys/devices/bone_capemgr.9/slots")
-		os.system("gpsd /dev/ttyO4 -F /var/run/gpsd.sock")
-
-
-
-	def read(self):
-		while True:
+class RoboGPS():
+	def __init__(self):
 			try:
 				report = session.next()
 				if report['class'] == 'TPV':
@@ -42,8 +35,8 @@ class RoboGPS(object):
 						lonMin = int(lon)
 						lonSec = lon-lonMin
 						lonSec = lonSec*60
-						gps = {"Latitude":"%s %s' %f''"} %(int(latDeg), int(latMin), latSec)
-						gps += {"Longitude":"%s %s' %f''"} %(int(lonDeg), int(lonMin), lonSec)
+						gps = {"Lat":"%s %s' %f''"} %(int(latDeg), int(latMin), latSec)
+						gps += {"Lon":"%s %s' %f''"} %(int(lonDeg), int(lonMin), lonSec)
 						return gps
 			except KeyError:
 				pass

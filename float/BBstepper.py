@@ -14,11 +14,11 @@ def step_forward(pins, rotations, rpm):
 		stepper = Stepper()
 		sleep_time=0.3/float(rpm)
 		steps_forward = rotations*200
-		GPIO.output(config.stepper1["dir"], GPIO.HIGH)	
+		GPIO.output(pins["dir"], GPIO.HIGH)	
 		for x in range(0, steps_forward):
-			GPIO.output(config.stepper1["clk"], GPIO.LOW)
+			GPIO.output(pins["clk"], GPIO.LOW)
 			time.sleep(sleep_time)
-			GPIO.output(config.stepper1["clk"], GPIO.HIGH)
+			GPIO.output(pins["clk"], GPIO.HIGH)
 		stepper.spin_clockwise(pins, rotations, rpm, 0)
 
 def step_backward(pins, rotations, rpm):
@@ -26,24 +26,24 @@ def step_backward(pins, rotations, rpm):
 		stepper = Stepper()
 		sleep_time=.3/float(rpm)
 		steps_backward = rotations*200
-		GPIO.output(config.stepper1["dir"], GPIO.LOW)
+		GPIO.output(pins["dir"], GPIO.LOW)
 		for x in range(0, steps_backward):
-			GPIO.output(config.stepper1["clk"], GPIO.LOW)
+			GPIO.output(pins["clk"], GPIO.LOW)
 			time.sleep(sleep_time)
-			GPIO.output(config.stepper1["clk"], GPIO.HIGH)
-		
+			GPIO.output(pins["clk"], GPIO.HIGH)
+		stepper.spin_counterclockwise(pins, rotations,rpm,0)		
 
 
 
 class Stepper(object):
 
 	def init_pins(self, pinarray):
-		GPIO.setup(pinaray["clk"], GPIO.OUT)
+		GPIO.setup(pinarray["clk"], GPIO.OUT)
 		GPIO.setup(pinarray["dir"], GPIO.OUT)
 		GPIO.output(pinarray["clk"], GPIO.HIGH)
 		
 	def spin_clockwise(self, pinarray, rotations, rpm, signal):
-		clockwise = multiprocessing.Process(name='Clockwise', target=step_forward, args=(pins, rotations, rpm,,))
+		clockwise = multiprocessing.Process(name='Clockwise', target=step_forward, args=(pins, rotations, rpm,))
 		clockwise.start()
 		if signal == 0:
 			clockwise.terminate()

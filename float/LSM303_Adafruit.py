@@ -1,5 +1,9 @@
 #!/usr/bin/python
 
+#This library was changed to fit Project RoboGoby. There is now a
+#"heading" option avaliable...see below for details
+#Limbeck Engineering, Travis Libsack 5/14
+
 # Python library for Adafruit Flora Accelerometer/Compass Sensor (LSM303).
 # This is pretty much a direct port of the current Arduino library and is
 # similarly incomplete (e.g. no orientation value returned from read()
@@ -128,8 +132,6 @@ class Adafruit_LSM303(Adafruit_I2C):
 	zheading = -magxNormal*math.cos(roll)*math.sin(pitch) + magyNormal*math.sin(roll)+magzNormal*math.cos(roll)*math.cos(pitch)
 	xheading = xheading*180/3.14159
 	yheading = yheading*180/3.14159
-	#print xheading
-	#print yheading
 	heading = 180*math.atan2(yheading, xheading)/(3.14159)
 	if (yheading >= 0):
 		return heading
@@ -143,14 +145,9 @@ class Adafruit_LSM303(Adafruit_I2C):
 
 
 # Simple example prints accel/mag data once per second:
-if __name__ == '__main__':
-
-    from time import sleep
-
-    lsm = Adafruit_LSM303()
-
-    print '[(Accelerometer X, Y, Z), (Magnetometer X, Y, Z, orientation)]'
-    while True:
-        print lsm.read()
-        sleep(1) # Output is fun to watch if this is commented out
+class LSM303():
+	def __init__(self):
+    		from time import sleep
+    		lsm = Adafruit_LSM303()
+        	return lsm.read()
 

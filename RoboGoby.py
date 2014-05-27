@@ -12,13 +12,8 @@ import multiprocessing
 from BBstepper import Stepper
 from BBBgps import RoboGPS
 import select
-from Sensors import Temperature, Battery_Life, IMU
+from Sensors import Temperature, Battery_Life
 
-
-ocuDATA = { } 
-subDATA = {"hello Josef Biberstein...I am watching you" } 
-floatDATA= ""
-run = 1
 
 def Processes(value):
  	       spooler = multiprocessing.Process(name='Spooler', target = spooler_init)
@@ -39,44 +34,54 @@ def spooler_init():
 	print "Spooler Initialized"
 
 
+def raspData(data, sent):
+	print "in RaspData"
+	sock1 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+	#sock2 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+	
+	try:
+		sock1.connect((config.RPi1HOST, config.Rasp1Port))
+		#sock2.connect((config.RPi2HOST, config.Rasp2Port))
+		sock1.send(data)
+		#sock2.sendall(data)	
+		print "data sent to RPis"
+	except:
+		print "Not able to connect to Raspberry Pis"
+		sock.close()
+
+
 def ocu_stream(sock, CONNECTION_LIST1, OCUserver):
+	signal = 1
 	for socket in CONNECTION_LIST1:
 		if socket != OCUserver:
 			while True:
 				try:
-				     print "ocu streaming"
-				     data = sensors() 
-				     #message1 = subDATA.encode(encoding='UTF-8')
-				     message2 = data.encode(encoding='UTF-8')
-				     #socket.send(message1)
-				     socket.send(message2)
-				     time.sleep(1)
+				     print "Streaming to OCU"
+				     if signal==1:
+					     data = sensors(1) 
+				     	     signal = 0
+				     else:
+					data = sensors(0)
+				     	message2 = data.encode(encoding='UTF-8')
+				        socket.senall(message2)
+ 					time.sleep(.5)
 				except:
 				     socket.close()
 				     CONNECTION_LIST1.remove(socket)
 				     sendTOocu.terminate()
 				     s.terminate()
+
 def ocu_send_data(CONNECTION_LIST1, OCUserver, sock, message):
 	for socket in CONNECTION_LIST1:
 		if socket != OCUserver:
 			try:
-		 	    message = "hello"
+		 	    message = "Data recieved"
 			    message = message.encode(encoding='UTF-8')
 			   
 			    socket.sendall(message)
 			except:
 			    socket.close()
 			    CONNECTION_LIST1.remove(socket)
-
-def sub_send_data(sock, message):
-	for socket in CONNECTION_LIST2:
-		if socket != OCUserver:
-			try:
-			    message = message.encode(encoding='UTF-8')
-			    socket.sendall(message)
-			except:
-			    socket.close()
-			    CONNECTION_LIST2.remove(socket)
 
 def ocuserver():
 	CONNECTION_LIST1 = []
@@ -87,6 +92,7 @@ def ocuserver():
 	OCUserver.listen(10)
 	
 	CONNECTION_LIST1.append(OCUserver)
+	sent = 0
 
 	while 1:
 		read_sockets,write_sockets,error_sockets = select.select(CONNECTION_LIST1, [], [])
@@ -99,15 +105,13 @@ def ocuserver():
 				print "sent client the hi message"
 			else:
 				try:
+					
 					print "created multithreaded process"
 					sendTOocu = multiprocessing.Process(name = "OCU Stream", target = ocu_stream, args = (sock, CONNECTION_LIST1, OCUserver,))
 					data = sock.recv(config.RECV_BUFFER)
-					print data
-					#data = data.decode(encoding='UTF-8')
-					if (data == "1"):
-						sendTOocu.start()
-						print "data = 1"
-
+					data = data.decode(encoding='UTF-8')
+					if (data):
+						raspData(data,sent)
 				except:
 					ocu_send_data(CONNECTION_LIST1, OCUserver, sock, "Kicking from OCUserver")
 					sock.close()
@@ -131,40 +135,48 @@ def subserver():
                         if sock == SUBserver:
                                 sock, addr = OCUserver.accept()
                                 CONNECTION_LIST2.append(sock)
-                                send_data(sock, "Welcome to RoboGoby's SUB Server")
                         else:
                                 try:
                                         data2 = sock.recv(config.RECV_BUFFER)
-					if data2:
-                                                data2 = data2.decode(encoding='UTF-8')
-                                                subDATA += data2
+					subsensors(1, data2)		
                                 except:
-                                        sub_send_data(sock, "Kicking from SUBserver")
 					sock.close()
                                         CONNECTION_LIST2.remove(sock)
                                         continue
 
 
-def sensors():
-	battery = Battery_Life()
-	temp = Temperature()
-	gps = RoboGPS()
-	imu = IMU()
-	imu.init()
-	temp.init()
-	battery.init()
-	gps.init()
-	global floatDATA
-	floatDATA = ""
-	floatDATA += "temp: "
-	floatDATA += str(temp.read())
-	floatDATA +="; battery: "
-	floatDATA += str(battery.read_voltage())
-	floatDATA +="; IMU: "
-	floatDATA += str(imu.read())
-	floatDATA += ";"
-	return floatDATA
-	
+def sensors(signal):
+	if signal == 1:
+		battery = Battery_Life()
+		temp = Temperature()
+		gps = RoboGPS()
+		imu = IMU()
+		imu.init()
+		temp.init()
+		battery.init()
+		gps.init()
+	else:
+		float = ""
+		float += "temp: "
+		float += str(temp.read())
+		float +="; battery: "
+		float += str(battery.read_voltage())
+		float +="; IMU: "
+		float += str(imu.read())
+		float += ";"
+		allData = float + subsensors(0, 1)
+		return allData	
+
+def subsensors(signal, data):
+	subdata = " "
+	if signal ==1:
+		subdata = data
+		return subdata
+	else:
+		subdata = subdata
+		return
+		
+
 
 class RoboGoby(object):
 	def init(self):
