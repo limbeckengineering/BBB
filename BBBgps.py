@@ -10,22 +10,27 @@ session = gps.gps("localhost", "2947")
 session.stream(gps.WATCH_ENABLE | gps.WATCH_NEWSTYLE)
 
 class RoboGPS(object):
-	def init():
+	def init(self):
+		from BBBgps import RoboGPS
 		os.system("echo BB-UART4 > /sys/devices/bone_capemgr.9/slots")
-		os.system("gpsd/dev/ttyO4 -F /var/run/gpsd.sock")
-
-
-
-	def read():
-		while True:
-			try:
+		os.system("gpsd /dev/ttyO4 -F /var/run/gpsd.sock")
+		session = gps.gps("localhost", "2947")
+		session.stream(gps.WATCH_ENABLE | gps.WATCH_NEWSTYLE)
+		gps1 = RoboGPS()
+		gps1.read(session)
+		
+	def read(self, session):	
+		        try:
 				report = session.next()
+
 				if report['class'] == 'TPV':
 					if hasattr(report, 'lat' and 'lon'):
 						latitude = report.lat
 						longitude = report.lon
+						print latitude
+						print longitude
 						lat = latitude
-						lon = longitude
+		  				lon = longitude
 						latDeg = int(latitude)
 						latMin = lat - latDeg
 						lat = latMin*60
@@ -51,7 +56,7 @@ class RoboGPS(object):
 				quit()
 			except StopIteration:
 				session = None
-		def quit():
+	def quit(self):
 			quit()
 			session = None	
 			print "The GPS has terminated"
