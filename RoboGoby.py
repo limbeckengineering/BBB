@@ -58,8 +58,8 @@ def read_sub(sock, CONNECTION_LIST1, OCUserver, addr):
 			subD = subDATA.split(";")
 			for i in range(0, len(subD)):
 				values[i] = subD[i].split(":")
-			print values
-			spool(values[0][1])
+			spool = multiprocessing.Process(name= "Spool", target= spool, args=(values[0][1],))
+			spool.start()
 			for socket in CONNECTION_LIST1:
 				if socket != server:
 					print "about to sendall SUB"
