@@ -35,13 +35,30 @@ def spooler_init():
 
 
 
-def spool(depth, que, value):
-	spooler1 = Stepper()
-	spooler2 = Stepper()
-	rotations = depth/6
-	rpm = depth - depthold
-	
-			que.put("N/A")
+def spool(sock, CONNECTION_LIST1, server):
+	running = True
+	while True:
+		if running:
+			depthold = 0
+			running = False
+		if sock = "10.0.1.119":
+			subDATA = sock.recv(config.RECV_BUFFER)
+		else:
+			subDATA = "n/a:n/a;
+		subD = subDATA.split(";")
+		for i in range(0, len(subD)):
+			values[i] = subD[i].split(":")
+		spooler1 = Stepper()
+		spooler2 = Stepper()
+		depth = int(values[0][1])
+		rotations = depth/4
+		rpm = depthold-depth
+		if rpm < 0:
+			rpm = rpm*-1
+			spooler1.spin_clockwise(config.stepper1, rotations, rpm, 1)
+		else if rpm > 0:
+			spooler1.spin_clockwise(config.stepper1, rotations, rpm, 1)
+		depthold = depth
 
 
 def raspData(data, sent):
@@ -62,18 +79,14 @@ def raspData(data, sent):
 		print "Not able to connect to Raspberry Pis"
 		sock1.close()
 
-def read_sub(sock, CONNECTION_LIST1, OCUserver, addr):
+def read_sub(sock, CONNECTION_LIST1, server, addr):
 	values = {}
 	try:
+		spool = multiprocessing.Process(name= "Spool", target= spool, args=(sock, CONNECTION_LIST1, server,)))
+		spool.start()
+		print "spool started"
 		while True:
 			print "in while lloop"
-			subDATA = sock.recv(config.RECV_BUFFER)
-			subD = subDATA.split(";")
-			for i in range(0, len(subD)):
-				values[i] = subD[i].split(":")
-			spoolqueue = Queue()
-			spool = multiprocessing.Process(name= "Spool", target= spool, args=(values[0][1],spoolqueue))
-			spool.start()
 			for socket in CONNECTION_LIST1:
 				if socket != server:
 					print "about to sendall SUB"
@@ -139,7 +152,7 @@ def server():
 			if sock == server:
 				sock, addr = server.accept()
 				CONNECTION_LIST1.append(sock)
-				ocu_send_data(CONNECTION_LIST1, server, sock, "Welcome to RoboGoby's OCU Server")
+				send_data(CONNECTION_LIST1, server, sock, "Welcome to RoboGoby's OCU Server")
 				print "Sent the startup message"
 			else:
 				try:
