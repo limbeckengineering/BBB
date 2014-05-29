@@ -6,25 +6,23 @@ import time
 import math
 import config
 import socket
-import SocketServer
-import threading
 import multiprocessing
 from multiprocessing import Queue
 from BBstepper import Stepper
 from BBBgps import RoboGPS
 import select
-from Sensors import Temp, Battery_Life
+from RoboGobySensors import Temp, Battery_Life
 from LSM303_Adafruit import LSM303
 
 
 def Processes(value):
  	       spooler = multiprocessing.Process(name='Spooler', target = spooler_init)
-               OCUserver = multiprocessing.Process(name='OCUServer', target = ocuserver)
+               server = multiprocessing.Process(name='Server', target = server)
 	       spooler.start()
-	       OCUserver.start()
+	       server.start()
 	       if (value == 0):
 			spooler.terminate()
-			OCUserver.terminate()
+			server.terminate()
 
 def spooler_init():
 	spooler = Stepper()
@@ -63,7 +61,7 @@ def read_sub(sock, CONNECTION_LIST1, OCUserver, addr):
 			print values
 			spool(values[0][1])
 			for socket in CONNECTION_LIST1:
-				if socket != OCUserver:
+				if socket != server:
 					print "about to sendall SUB"
 					socket.sendall(subDATA)	
 					print "sent all SUB"
@@ -98,9 +96,9 @@ def ocu_stream(sock, CONNECTION_LIST1, OCUserver):
 				     socket.close()
 				     CONNECTION_LIST1.remove(socket)
 				     
-def ocu_send_data(CONNECTION_LIST1, OCUserver, sock, message):
+def send_data(CONNECTION_LIST1, server, sock, message):
 	for socket in CONNECTION_LIST1:
-		if socket != OCUserver:
+		if socket != server:
 			try:
 			    message = message.encode(encoding='UTF-8')
 			   
@@ -109,35 +107,35 @@ def ocu_send_data(CONNECTION_LIST1, OCUserver, sock, message):
 			    socket.close()
 			    CONNECTION_LIST1.remove(socket)
 
-def ocuserver():
+def server():
 	CONNECTION_LIST1 = []
-	OCUserver = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-	OCUserver.setsockopt(socket.SOL_SOCKET, socket.SOCK_STREAM, 1)
-	OCUserver.bind((config.HOST, config.OCUPort))
+	server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+	server.setsockopt(socket.SOL_SOCKET, socket.SOCK_STREAM, 1)
+	server.bind((config.HOST, config.OCUPort))
 	print "Starting OCUServer..."
-	OCUserver.listen(10)
+	server.listen(10)
 	
-	CONNECTION_LIST1.append(OCUserver)
+	CONNECTION_LIST1.append(server)
 	sent = 0
 
 	while 1:
 		read_sockets,write_sockets,error_sockets = select.select(CONNECTION_LIST1, [], [])
 		
 		for sock in read_sockets:
-			if sock == OCUserver:
-				sock, addr = OCUserver.accept()
+			if sock == server:
+				sock, addr = server.accept()
 				CONNECTION_LIST1.append(sock)
-				ocu_send_data(CONNECTION_LIST1, OCUserver, sock, "Welcome to RoboGoby's OCU Server")
+				ocu_send_data(CONNECTION_LIST1, server, sock, "Welcome to RoboGoby's OCU Server")
 				print "Sent the startup message"
 			else:
 				try:
 				
 					if str(addr[0]) == "10.0.1.119":
-						readSUB = multiprocessing.Process(name = "readSUB", target = read_sub, args = (sock, CONNECTION_LIST1, OCUserver, addr[0],))
+						readSUB = multiprocessing.Process(name = "readSUB", target = read_sub, args = (sock, CONNECTION_LIST1, server, addr[0],))
 						readSUB.start()
 					
 					else:
-						sendTOocu = multiprocessing.Process(name = "OCU Stream", target = ocu_stream, args = (sock, CONNECTION_LIST1, OCUserver,))
+						sendTOocu = multiprocessing.Process(name = "OCU Stream", target = ocu_stream, args = (sock, CONNECTION_LIST1, server,))
 						data = sock.recv(config.RECV_BUFFER)
 						data = data.decode(encoding='UTF-8')
 						if (data=="1"):
@@ -150,7 +148,7 @@ def ocuserver():
 							#raspData(data,sent)
 							sent = 1
 				except:
-					ocu_send_data(CONNECTION_LIST1, OCUserver, sock, "Kicking from OCUserver")
+					send_data(CONNECTION_LIST1, server, sock, "Kicking from Server")
 					sock.close()
 					CONNECTION_LIST1.remove(sock)
 					continue
