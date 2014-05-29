@@ -15,20 +15,33 @@ from RoboGobySensors import Temp, Battery_Life
 from LSM303_Adafruit import LSM303
 
 
-def Processes(value):
+def Processes(server, spooler):
  	       spooler = multiprocessing.Process(name='Spooler', target = spooler_init)
                server = multiprocessing.Process(name='Server', target = server)
 	       spooler.start()
 	       server.start()
-	       if (value == 0):
-			spooler.terminate()
+	       if (server == 0):
 			server.terminate()
+   	       if (spooler ==0):
+			spooler.terminate()
+		
 
 def spooler_init():
 	spooler = Stepper()
 	spooler.init_pins(config.stepper1)
 	spooler.init_pins(config.stepper2)
 	print "Spooler Initialized"
+	Processes(1, 0)
+
+
+
+def spool(depth, que, value):
+	spooler1 = Stepper()
+	spooler2 = Stepper()
+	rotations = depth/6
+	rpm = depth - depthold
+	
+			que.put("N/A")
 
 
 def raspData(data, sent):
@@ -58,7 +71,8 @@ def read_sub(sock, CONNECTION_LIST1, OCUserver, addr):
 			subD = subDATA.split(";")
 			for i in range(0, len(subD)):
 				values[i] = subD[i].split(":")
-			spool = multiprocessing.Process(name= "Spool", target= spool, args=(values[0][1],))
+			spoolqueue = Queue()
+			spool = multiprocessing.Process(name= "Spool", target= spool, args=(values[0][1],spoolqueue))
 			spool.start()
 			for socket in CONNECTION_LIST1:
 				if socket != server:
@@ -182,9 +196,9 @@ def sensors(signal):
 
 class RoboGoby(object):
 	def init(self):
-		Processes(1)
+		Processes(1, 1)
 
 	def cleanup(self):
 		print "Starting Cleanup"
-		Processes(0)
+		Processes(0, 1)
 		print "Cleanup Finished"
