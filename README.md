@@ -7,6 +7,8 @@ To install the necessary libraries run the _init.sh_ file. To initiate the Pytho
 
 The following code is only tested for Ubuntu Saucy (13.10) on the BeagleBone Black. It will work on most Ubuntu systems, although you needed an updated Bone kernel in order for the software to work. Check you bone kernel by using this comand: _uname -a_. Make sure it is Bone_28 or above. 
 
+If you would like a more detalied explanation on the RoboGoby folder and what it contains please refer to out other repositoy name robogoby. Thanks.
+
 
 Dependencies
 ----------------------------------
@@ -72,3 +74,30 @@ And then lock the UART port with gpsd-clients (which was installed in during _in
 Now the BBBgps.py file can be run using Python:
 
           sudo python BBBgps.py
+          
+
+
+Reading Battery Life
+------------------------------------------
+
+The Battery.py file is used to read incoming voltages and relate that to % of battery. The hardware consists of a simple voltage step-down attached to the BeaglBone's ADC pins. The file was converted into a "RoboGobySensors.py" module for Project RoboGoby. For more information on how to use this code please read out blogpost found here:
+	
+	http://robogoby.blogspot.com/2014/05/measuring-battery-life-beaglebone-black.html
+
+
+Depth Sensor
+----------------------------------------
+
+The depth.py file is a module created to measure psi and then conovert it to distance below sea level. This specific setup uses the BeagleBone Black's ADC pins and an SC150 pressure sensors. For more information on the sensors please read this blog post:
+
+	http://robogoby.blogspot.com/2014/02/waterproofing-tru-stability-pressure.html
+
+
+Temp with DS18B20
+----------------------------------------
+
+This repository also contains the file used to read a DS118B20 temperature sensor through the BeagleBone Black. This sensor is a one-wire sensors and has been extremely useful for things other than Project RoboGoby. If you would like to know more about this sensor please read out blogpost:
+
+	http://robogoby.blogspot.com/2014/05/beaglebone-and-ds18b20-temp-sensor.html
+	
+
