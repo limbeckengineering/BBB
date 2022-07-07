@@ -16,4 +16,4 @@ stepper.spin_counterclockwise(config.pins, 3, 30)
 
 
 
-stepper.cleanup(pins)
+stepper.cleanup(config.pins)
